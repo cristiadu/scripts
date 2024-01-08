@@ -1,0 +1,24 @@
+{
+  "name": "my-li-jobs",
+  "version": "1.0.0",
+  "description": "Streamline script/tool to get Linkedin job list without duplicated/applied postings.",
+  "scripts": {
+    "test": "npx playwright test",
+    "test-ui": "npx playwright test --ui",
+    "test-report": "npx playwright show-report"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cristiadu/scripts.git"
+  },
+  "author": "cristiadu",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cristiadu/scripts/issues"
+  },
+  "homepage": "https://github.com/cristiadu/scripts#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.40.1",
+    "@types/node": "^20.10.7"
+  }
+}
