@@ -5,4 +5,4 @@ Some scripts made to help me automate &amp; streamline some things.
 
 Script made to streamline the Linkedin Job search by removing possible duplicates and jobs you already applied.
 
-[Link](./my-li-jobs/README.md)
+[Link](./my-li-jobs)
