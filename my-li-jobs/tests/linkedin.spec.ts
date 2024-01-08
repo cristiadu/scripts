@@ -7,7 +7,7 @@ test('has title', async ({ page }) => {
   await expect(page).toHaveTitle("LinkedIn: Log In or Sign Up");
 });
 
-test('get started link', async ({ page }) => {
+test('get login error when empty', async ({ page }) => {
   await page.goto('https://www.linkedin.com/');
 
   // Click the get started link.
