@@ -4,6 +4,7 @@
   "description": "Streamline script/tool to get Linkedin job list without duplicated/applied postings.",
   "scripts": {
     "test": "npx playwright test",
+    "test-debug": "npx playwright test --debug",
     "test-ui": "npx playwright test --ui",
     "test-report": "npx playwright show-report"
   },
