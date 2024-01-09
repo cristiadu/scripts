@@ -20,6 +20,7 @@
   "homepage": "https://github.com/cristiadu/scripts#readme",
   "devDependencies": {
     "@playwright/test": "^1.40.1",
-    "@types/node": "^20.10.7"
+    "@types/node": "^20.10.7",
+    "dotenv": "^16.3.1"
   }
 }
