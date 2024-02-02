@@ -82,13 +82,18 @@ class OAuthServer:
 
 
 if __name__ == "__main__":
-    # Getting all needed parameters.
     if not 'INSTAGRAM_APP_SECRET' in os.environ:
         print(f"Missing INSTAGRAM_APP_SECRET set as environment variable.")
         exit(1)
+
+    if not 'INSTAGRAM_APP_ID' in os.environ:
+        print(f"Missing INSTAGRAM_APP_ID set as environment variable.")
+        exit(1)
+
+    # Getting all needed parameters.
     app_secret = os.environ['INSTAGRAM_APP_SECRET']
-    app_id = "688975250098546"  # Configured app_id on instagram API.
-    redirect_url = "https://localhost:8000/"
+    app_id = os.environ['INSTAGRAM_APP_ID']  # Configured app_id on instagram API.
+    redirect_url = f"https://localhost:{OAuthServer.PORT}/"
 
     # 1. Initial request needs to be opened in the browser so user accepts giving Instagram permissions.
     webbrowser.open(
