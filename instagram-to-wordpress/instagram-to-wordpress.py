@@ -3,6 +3,7 @@
 import json
 import http.server
 import socketserver
+import ssl
 import threading
 import time
 from typing import Tuple
@@ -34,21 +35,23 @@ class OAuthServer:
     authorization_code = ""
     PORT = 8000
     _my_server: SimpleHttpServer
+    _server_started = False
 
     def start_oauth_server(self):
         # Start the server
         authorization_code = ""
         tries = 0 # tries 5 times to start server before identifying as an error.
-        server_started = False
-        while not server_started and tries < 5:
+        while not self._server_started and tries < 5:
             try:
+                socketserver.TCPServer.allow_reuse_address = True
                 self._my_server = socketserver.TCPServer(("0.0.0.0", self.PORT), SimpleHttpServer)
-                server_started = True
+                self._my_server.socket = ssl.wrap_socket (self._my_server.socket, keyfile="./key.pem", certfile='./cert.pem', server_side=True)
                 print(f"Server started at {self.PORT}")
+                self._server_started = True
                 self._my_server.serve_forever()
             except Exception as err:
                 tries += 1
-                server_started = False
+                self._server_started = False
                 if tries == 5:
                     print(f"Exception happened while starting server: {err}")
                     exit(1)
@@ -56,11 +59,9 @@ class OAuthServer:
                     time.sleep(2) # waits 2 seconds before next try
     
     def stop_oauth_server(self):
-        try:
+        if self._server_started:
             print(f"Server shutdown requested on port {self.PORT}")
             self._my_server.shutdown()
-        except AttributeError:
-            print("There was no server initialized to shutdown")
 
 
 if __name__ == "__main__":
