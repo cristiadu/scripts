@@ -7,6 +7,7 @@ import socketserver
 import ssl
 import threading
 import time
+import webbrowser
 from typing import Tuple
 from http import HTTPStatus
 from urllib.parse import urlsplit, parse_qs
@@ -24,8 +25,8 @@ class SimpleHttpServer(http.server.SimpleHTTPRequestHandler):
         url = urlsplit(self.path)
         if url.path == '/':
             query_string = parse_qs(url.query)
-            if 'authorization_code' in query_string:
-                OAuthServer.authorization_code = query_string['authorization_code'][0]
+            if 'code' in query_string:
+                OAuthServer.authorization_code = query_string['code'][0]
         self.send_response(HTTPStatus.OK if OAuthServer.authorization_code != "" else HTTPStatus.BAD_REQUEST)
         self.send_header("Content-Type", "application/json")
         self.end_headers()
@@ -72,9 +73,14 @@ class OAuthServer:
 
 
 if __name__ == "__main__":
+    # 1. Initial request needs to be opened in the browser so user accepts giving Instagram permissions.
+    app_id = "688975250098546"
+    redirect_url = "https://localhost:8000/"
+    webbrowser.open(f'https://api.instagram.com/oauth/authorize?client_id={app_id}&redirect_uri={redirect_url}&scope=user_profile,user_media&response_type=code', new=2)
+
+    # 2. Logic so OAuth authorization code is retrieved by temporary server created for this purpose.
     oauth_server = OAuthServer()
     server_thread = threading.Thread(target=oauth_server.start_oauth_server)
-
     try:
         server_thread.start()
         while(OAuthServer.authorization_code == ""):
@@ -91,3 +97,7 @@ if __name__ == "__main__":
     finally:
         oauth_server.stop_oauth_server()
         server_thread.join()
+
+    # 3. Call to retrieve short lived access-token
+        
+    # 4. Call to retrieve long-lived access-token and save it as a file.
