@@ -136,7 +136,7 @@ if __name__ == "__main__":
     time_change = timedelta(seconds=long_lived_json['expires_in'])
     with io.open('access_token.json', 'w', encoding='utf-8') as f:
         json_data = json.dumps({'access_token': long_lived_json['access_token'],
-                                'user_id': 17841406804093636,
+                                'user_id': short_lived_json['user_id'],
                                 'expiration_date': datetime.timestamp(datetime.now() + time_change)}, ensure_ascii=False, indent=2)
         f.write(json_data)
         print(f"JSON data saved to file: {json_data}")
