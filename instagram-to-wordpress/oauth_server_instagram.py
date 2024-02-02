@@ -74,7 +74,7 @@ class OAuthServer:
 
 if __name__ == "__main__":
     # 1. Initial request needs to be opened in the browser so user accepts giving Instagram permissions.
-    app_id = "688975250098546"
+    app_id = "688975250098546" # Configured app_id on instagram API.
     redirect_url = "https://localhost:8000/"
     webbrowser.open(f'https://api.instagram.com/oauth/authorize?client_id={app_id}&redirect_uri={redirect_url}&scope=user_profile,user_media&response_type=code', new=2)
 
