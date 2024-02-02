@@ -66,13 +66,12 @@ if __name__ == "__main__":
 
     try:
         server_thread.start()
-        while(OAuthServer.authorization_code == "" and server_thread.is_alive()):
+        while(OAuthServer.authorization_code == ""):
+            # It was stopped due to an error on the OAuthServer thread.
+            if not server_thread.is_alive():
+                server_thread.join()
+                exit(1)
             time.sleep(5)
-        
-        # It was stopped due to an error on the OAuthServer thread.
-        if not server_thread.is_alive():
-            server_thread.join()
-            exit(1)
 
         print(f"Authorization Code retrieved is: {OAuthServer.authorization_code}")
     except KeyboardInterrupt:
