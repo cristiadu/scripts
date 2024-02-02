@@ -8,6 +8,7 @@ import ssl
 import threading
 import time
 import webbrowser
+import requests
 from typing import Tuple
 from http import HTTPStatus
 from urllib.parse import urlsplit, parse_qs
@@ -73,9 +74,15 @@ class OAuthServer:
 
 
 if __name__ == "__main__":
-    # 1. Initial request needs to be opened in the browser so user accepts giving Instagram permissions.
+    # Getting all needed parameters.
+    if not 'INSTAGRAM_APP_SECRET' in os.environ:
+        print(f"Missing INSTAGRAM_APP_SECRET set as environment variable.")
+        exit(1)
+    app_secret = os.environ['INSTAGRAM_APP_SECRET']
     app_id = "688975250098546" # Configured app_id on instagram API.
     redirect_url = "https://localhost:8000/"
+
+    # 1. Initial request needs to be opened in the browser so user accepts giving Instagram permissions.
     webbrowser.open(f'https://api.instagram.com/oauth/authorize?client_id={app_id}&redirect_uri={redirect_url}&scope=user_profile,user_media&response_type=code', new=2)
 
     # 2. Logic so OAuth authorization code is retrieved by temporary server created for this purpose.
@@ -99,5 +106,18 @@ if __name__ == "__main__":
         server_thread.join()
 
     # 3. Call to retrieve short lived access-token
+    short_lived_response = requests.post("https://api.instagram.com/oauth/access_token", 
+                  data={'client_id': app_id, 'client_secret': app_secret, 'grant_type': 'authorization_code', 'redirect_uri': redirect_url, 'code': OAuthServer.authorization_code })
+    short_lived_json = short_lived_response.json()
+    if not 'access_token' in short_lived_json or not 'user_id' in short_lived_json:
+        print(f"Missing access_token or user_id from response of short lived request: {short_lived_json}")
+        exit(1)
+    print(f"Short Lived Token: {short_lived_json}")
         
     # 4. Call to retrieve long-lived access-token and save it as a file.
+    long_lived_response = requests.get(f"https://graph.instagram.com/access_token?grant_type=ig_exchange_token&client_secret={app_secret}&access_token={short_lived_json['access_token']}")
+    long_lived_json = long_lived_response.json()
+    if not 'access_token' in long_lived_json or not 'expires_in' in long_lived_json:
+        print(f"Missing access_token or expires_in from response of long lived request: {short_lived_json}")
+        exit(1)
+    print(f"Long Lived Token: {long_lived_json}")
