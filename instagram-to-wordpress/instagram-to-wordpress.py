@@ -40,7 +40,7 @@ class OAuthServer:
         authorization_code = ""
         tries = 0 # tries 5 times to start server before identifying as an error.
         server_started = False
-        while server_started is False and tries < 5:
+        while not server_started and tries < 5:
             try:
                 self._my_server = socketserver.TCPServer(("0.0.0.0", self.PORT), SimpleHttpServer)
                 server_started = True
