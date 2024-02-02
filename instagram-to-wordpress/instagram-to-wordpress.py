@@ -80,7 +80,6 @@ if __name__ == "__main__":
         while(OAuthServer.authorization_code == ""):
             # It was stopped due to an error on the OAuthServer thread.
             if not server_thread.is_alive():
-                server_thread.join()
                 print("Error happened while executing thread.")
                 exit(1)
             else:
