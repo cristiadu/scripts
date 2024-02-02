@@ -53,7 +53,7 @@ class OAuthServer:
                     print(f"Exception happened while starting server: {err}")
                     exit(1)
                 else:
-                    time.sleep(5) # waits 2 seconds before next try
+                    time.sleep(2) # waits 2 seconds before next try
     
     def stop_oauth_server(self):
         print(f"Server shutdown requested on port {self.PORT}")
