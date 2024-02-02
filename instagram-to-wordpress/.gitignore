@@ -1,2 +1,3 @@
 *.pem
 access_token.json
+.profile
