@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+
+import io
 import json
 import http.server
 import os
@@ -9,6 +11,7 @@ import threading
 import time
 import webbrowser
 import requests
+from datetime import datetime, timedelta
 from typing import Tuple
 from http import HTTPStatus
 from urllib.parse import urlsplit, parse_qs
@@ -114,10 +117,17 @@ if __name__ == "__main__":
         exit(1)
     print(f"Short Lived Token: {short_lived_json}")
         
-    # 4. Call to retrieve long-lived access-token and save it as a file.
+    # 4. Call to retrieve long-lived access-token.
     long_lived_response = requests.get(f"https://graph.instagram.com/access_token?grant_type=ig_exchange_token&client_secret={app_secret}&access_token={short_lived_json['access_token']}")
     long_lived_json = long_lived_response.json()
     if not 'access_token' in long_lived_json or not 'expires_in' in long_lived_json:
         print(f"Missing access_token or expires_in from response of long lived request: {short_lived_json}")
         exit(1)
     print(f"Long Lived Token: {long_lived_json}")
+
+    # Saving the long-lived token into a file.
+    time_change = timedelta(seconds=long_lived_json['expires_in'])
+    with io.open('access_token.json', 'w', encoding='utf-8') as f:
+        json_data = json.dumps({'access_token': long_lived_json['access_token'], 'expiration_date': datetime.timestamp(datetime.now() + time_change)}, ensure_ascii=False, indent=2)
+        f.write(json_data)
+        print(f"JSON data saved to file: {json_data}")
