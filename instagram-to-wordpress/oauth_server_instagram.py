@@ -15,6 +15,7 @@ from datetime import datetime, timedelta
 from typing import Tuple
 from http import HTTPStatus
 from urllib.parse import urlsplit, parse_qs
+from dotenv import load_dotenv
 
 
 class SimpleHttpServer(http.server.SimpleHTTPRequestHandler):
@@ -82,6 +83,7 @@ class OAuthServer:
 
 
 if __name__ == "__main__":
+    load_dotenv()
     if not 'INSTAGRAM_APP_SECRET' in os.environ:
         print(f"Missing INSTAGRAM_APP_SECRET set as environment variable.")
         exit(1)
