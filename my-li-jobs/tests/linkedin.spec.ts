@@ -5,7 +5,7 @@ test.describe('Get new jobs from LinkedIn', () => {
   dotenv.config();
   const searchTerms = process.env.SEARCH_TERMS?.split(',') || ['software'];
 
-  test.beforeEach(async ({ page }) => {
+  test.beforeAll(async ({ page }) => {
     await page.goto('https://www.linkedin.com/');
   
     await expect(page).toHaveTitle("LinkedIn: Log In or Sign Up");
