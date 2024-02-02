@@ -56,8 +56,11 @@ class OAuthServer:
                     time.sleep(2) # waits 2 seconds before next try
     
     def stop_oauth_server(self):
-        print(f"Server shutdown requested on port {self.PORT}")
-        self._my_server.shutdown()
+        try:
+            print(f"Server shutdown requested on port {self.PORT}")
+            self._my_server.shutdown()
+        except AttributeError:
+            print("There was no server initialized to shutdown")
 
 
 if __name__ == "__main__":
@@ -70,6 +73,7 @@ if __name__ == "__main__":
             # It was stopped due to an error on the OAuthServer thread.
             if not server_thread.is_alive():
                 server_thread.join()
+                print("Error happened while executing thread.")
                 exit(1)
             time.sleep(5)
 
