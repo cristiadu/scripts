@@ -2,6 +2,7 @@
 
 import json
 import http.server
+import os
 import socketserver
 import ssl
 import threading
@@ -43,9 +44,15 @@ class OAuthServer:
         tries = 0 # tries 5 times to start server before identifying as an error.
         while not self._server_started and tries < 5:
             try:
+                if not 'SSL_PASSWORD' in os.environ:
+                    print(f"Missing SSL_PASSWORD set as environment variable.")
+                    exit(1)
+
                 socketserver.TCPServer.allow_reuse_address = True
                 self._my_server = socketserver.TCPServer(("0.0.0.0", self.PORT), SimpleHttpServer)
-                self._my_server.socket = ssl.wrap_socket (self._my_server.socket, keyfile="./key.pem", certfile='./cert.pem', server_side=True)
+                ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+                ssl_context.load_cert_chain("./cert.pem", "./key.pem", password=os.environ['SSL_PASSWORD'])
+                self._my_server.socket = ssl_context.wrap_socket (self._my_server.socket, server_side=True)
                 print(f"Server started at {self.PORT}")
                 self._server_started = True
                 self._my_server.serve_forever()
@@ -76,7 +83,8 @@ if __name__ == "__main__":
                 server_thread.join()
                 print("Error happened while executing thread.")
                 exit(1)
-            time.sleep(5)
+            else:
+                time.sleep(5)
 
         print(f"Authorization Code retrieved is: {OAuthServer.authorization_code}")
     except KeyboardInterrupt:
