@@ -13,7 +13,7 @@ class InstagramClient():
     _config_file: str
 
     def __init__(self, config_file):
-        required_keys = ['user_id', 'access_code', 'expiration_date']
+        required_keys = ['user_id', 'access_token', 'expiration_date']
         f = open(config_file)
         config = json.load(f)
         f.close()
