@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 
-
 import io
 import json
 import http.server
@@ -135,7 +134,7 @@ if __name__ == "__main__":
         f"https://graph.instagram.com/access_token?grant_type=ig_exchange_token&client_secret={app_secret}&access_token={short_lived_json['access_token']}")
     long_lived_json = long_lived_response.json()
     if not 'access_token' in long_lived_json or not 'expires_in' in long_lived_json:
-        print(f"Missing access_token or expires_in from response of long lived request: {short_lived_json}")
+        print(f"Missing access_token or expires_in from response of long lived request: {long_lived_json}")
         exit(1)
     print(f"Long Lived Token: {long_lived_json}")
 
