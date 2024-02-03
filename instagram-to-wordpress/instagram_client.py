@@ -18,7 +18,7 @@ class InstagramClient():
         config = json.load(f)
         f.close()
         if any(key not in config for key in required_keys):
-            print(f"Missing one of the required keys ({required_keys}) from configuration file: {config}")
+            print(f"Missing one or more required keys ({required_keys}) from configuration file: {config}")
 
         self._user_id = config['user_id']
         self._access_token = config['access_token']
@@ -38,11 +38,11 @@ class InstagramClient():
         long_lived_response = requests.get(
             f"https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token={self._access_token}")
         long_lived_json = long_lived_response.json()
-        if not 'access_token' in long_lived_json or not 'expires_in' in long_lived_json:
-            print(f"Missing access_token or expires_in from response of long lived request: {long_lived_json}")
+        required_keys = ['access_token', 'expires_in']
+        if any(key not in long_lived_json for key in required_keys):
+            print(f"Missing one or more required keys ({required_keys}) from response of long lived request: {long_lived_json}")
             exit(1)
         print(f"Long Lived Token: {long_lived_json}")
-        self._user_id = long_lived_json['user_id']
         self._access_token = long_lived_json['access_token']
         time_change = timedelta(seconds=long_lived_json['expires_in'])
         self._expiration_date = datetime.timestamp(datetime.now() + time_change)
