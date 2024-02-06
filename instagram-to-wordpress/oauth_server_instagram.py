@@ -46,7 +46,7 @@ class OAuthServer:
 
     def start_oauth_server(self):
         # Start the server
-        authorization_code = ""
+        self.authorization_code = ""
         # tries 5 times to start server before identifying as an error.
         tries = 0
         while not self._server_started and tries < 5:
