@@ -20,9 +20,7 @@ class InstagramMedia():
         self.caption: str = json_data['caption'] if 'caption' in json_data else ''
         self.username: str = json_data['username'] if 'username' in json_data else ''
         self.timestamp: str = json_data['timestamp'] if 'timestamp' in json_data else ''
-        self.children: array(
-            InstagramMedia) = json_data['children'] if 'children' in json_data else []
-        return
+        self.children: array(InstagramMedia) = json_data['children'] if 'children' in json_data else []
 
     def to_json(self):
         return json.dumps(self, default=lambda o: o.__dict__)
@@ -37,7 +35,6 @@ class InstagramUser():
         self.username: str = json_data['username'] if 'username' in json_data else ''
         self.account_type: str = json_data['account_type'] if 'account_type' in json_data else ''
         self.media_count: int = json_data['media_count'] if 'media_count' in json_data else -1
-        return
 
     def to_json(self):
         return json.dumps(self, default=lambda o: o.__dict__)
