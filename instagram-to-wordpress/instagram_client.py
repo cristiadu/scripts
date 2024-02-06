@@ -8,23 +8,29 @@ from datetime import datetime, timedelta
 
 class InstagramMedia():
     def __init__(self, json_data):
+        if 'id' not in json_data:
+            raise RuntimeError("Missing ID on Instagram media json_data")
+
         self.id: str = json_data['id']
-        self.media_type: str = json_data['media_type']
-        self.permalink: str = json_data['permalink']
-        self.media_url: str = json_data['media_url']
-        self.thumbnail_url: str = json_data['thumbnail_url']
-        self.caption: str = json_data['caption']
-        self.username: str = json_data['username']
-        self.timestamp: str = json_data['timestamp']
+        self.media_type: str = json_data['media_type'] if 'media_type' in json_data else ''
+        self.permalink: str = json_data['permalink'] if 'permalink' in json_data else ''
+        self.media_url: str = json_data['media_url'] if 'media_url' in json_data else ''
+        self.thumbnail_url: str = json_data['thumbnail_url'] if 'thumbnail_url' in json_data else ''
+        self.caption: str = json_data['caption'] if 'caption' in json_data else ''
+        self.username: str = json_data['username'] if 'username' in json_data else ''
+        self.timestamp: str = json_data['timestamp'] if 'timestamp' in json_data else ''
         self.children: array(InstagramMedia) = json_data['children'] if 'children' in json_data else []
         return
 
 class InstagramUser():
     def __init__(self, json_data):
+        if 'id' not in json_data:
+            raise RuntimeError("Missing ID on Instagram user json_data")
+        
         self.id: str = json_data['id']
-        self.username: str = json_data['username']
-        self.account_type: str = json_data['account_type']
-        self.media_count: int = json_data['media_count']
+        self.username: str = json_data['username'] if 'username' in json_data else ''
+        self.account_type: str = json_data['account_type'] if 'account_type' in json_data else ''
+        self.media_count: int = json_data['media_count'] if 'media_count' in json_data else -1
         return
 
 class InstagramClient():
@@ -81,11 +87,11 @@ class InstagramClient():
             f.write(json_data)
             print(f"JSON data saved to file: {json_data}")
 
-    def get_user_details(self, user_id = _user_id, fields = _ALL_USER_FIELDS):
+    def get_user_details(self, fields = _ALL_USER_FIELDS):
         #GET https://graph.instagram.com/{api-version}/{user-id}?access_token={access-token}&fields{fields}
         return InstagramUser()
 
-    def get_user_medias(self, user_id = _user_id, since = None, until = None, fields = _ALL_MEDIA_FIELDS, with_children_data = True):
+    def get_user_medias(self, since = None, until = None, fields = _ALL_MEDIA_FIELDS, with_children_data = False):
         #GET https://graph.instagram.com/{api-version}/{user-id}/media?access_token={access-token}&fields{fields}&since={since}&until={until}
         return []
 
@@ -96,3 +102,4 @@ class InstagramClient():
 
 if __name__ == "__main__":
     instagram_client = InstagramClient('access_token.json')
+    media = InstagramMedia({'id':'bla'})
