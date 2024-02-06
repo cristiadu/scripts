@@ -140,7 +140,7 @@ if __name__ == "__main__":
 
     # Saving the long-lived token into a file.
     time_change = timedelta(seconds=long_lived_json['expires_in'])
-    with io.open('access_token.json', 'w', encoding='utf-8') as f:
+    with io.open('instagram_config.json', 'w', encoding='utf-8') as f:
         json_data = json.dumps({'access_token': long_lived_json['access_token'],
                                 'user_id': short_lived_json['user_id'],
                                 'expiration_date': datetime.timestamp(datetime.now() + time_change)}, ensure_ascii=False, indent=2)

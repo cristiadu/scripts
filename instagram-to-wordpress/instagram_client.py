@@ -159,7 +159,7 @@ class InstagramClient():
 
 
 if __name__ == '__main__':
-    instagram_client = InstagramClient('access_token.json')
+    instagram_client = InstagramClient('instagram_config.json')
     user = instagram_client.get_user_details()
     print(user.to_json())
     current_date = datetime.now()
