@@ -98,7 +98,9 @@ class InstagramClient():
         response = requests.get(
             f'https://graph.instagram.com/{self._API_VERSION}/{self._user_id}?access_token={self._access_token}&fields={fields}')
 
-        # TODO: Check 200 status on all requests, treat when 400/500 is given.
+        if response.status_code != 200:
+            print(f'Error while trying to make user details request {response.url}: {response.json()}')
+
         response_json = response.json()
         return InstagramUser(response_json)
 
@@ -108,11 +110,17 @@ class InstagramClient():
         response_json = response.json()
         response_data = response_json['data']
 
-        # TODO: Check 200 status on all requests, treat when 400/500 is given.
         while 'paging' in response_json and 'next' in response_json['paging']:
             response = requests.get(response_json['paging']['next'])
             response_json = response.json()
             response_data.extend(response_json['data'])
+
+        if with_children_data:
+            for media in response_data:
+                media['children'] = self.get_media_children(media['id'])
+
+        if response.status_code != 200:
+            print(f'Error while trying to make media request {response.url}: {response.json()}')
 
         return [InstagramMedia(media_json) for media_json in response_data]
     
@@ -122,11 +130,13 @@ class InstagramClient():
         response_json = response.json()
         response_data = response_json['data']
 
-        # TODO: Check 200 status on all requests, treat when 400/500 is given.
         while 'paging' in response_json and 'next' in response_json['paging']:
             response = requests.get(response_json['paging']['next'])
             response_json = response.json()
             response_data.extend(response_json['data'])
+
+        if response.status_code != 200:
+            print(f'Error while trying to make media children request {response.url}: {response.json()}')
 
         return [InstagramMedia(media_json) for media_json in response_data]
 
@@ -134,8 +144,7 @@ if __name__ == '__main__':
     instagram_client = InstagramClient('access_token.json')
     user = instagram_client.get_user_details()
     print(user.to_json())
-    medias = instagram_client.get_user_medias()
+    medias = instagram_client.get_user_medias(with_children_data=True)
     print(json.dumps(medias, default=lambda o: o.__dict__))
     media_children = instagram_client.get_media_children("18044564671395940")
     print(json.dumps(media_children, default=lambda o: o.__dict__))
-
