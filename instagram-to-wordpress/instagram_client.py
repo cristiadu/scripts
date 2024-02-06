@@ -123,7 +123,9 @@ class InstagramClient():
 
         if with_children_data:
             for media in response_data:
-                media['children'] = self.get_media_children(media['id'])
+                # children are only available for "CAROUSEL_ALBUM" media types.
+                if ('media_type', 'CAROUSEL_ALBUM') in media.items():
+                    media['children'] = self.get_media_children(media['id'])
 
         if response.status_code != 200:
             print(
