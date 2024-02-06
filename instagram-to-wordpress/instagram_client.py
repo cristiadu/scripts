@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 class InstagramMedia():
     def __init__(self, json_data):
         if 'id' not in json_data:
-            raise RuntimeError("Missing ID on Instagram media json_data")
+            raise RuntimeError('Missing ID on Instagram media json_data')
 
         self.id: str = json_data['id']
         self.media_type: str = json_data['media_type'] if 'media_type' in json_data else ''
@@ -21,17 +21,23 @@ class InstagramMedia():
         self.timestamp: str = json_data['timestamp'] if 'timestamp' in json_data else ''
         self.children: array(InstagramMedia) = json_data['children'] if 'children' in json_data else []
         return
+    
+    def to_json(self):
+        return json.dumps(self, default=lambda o: o.__dict__)
 
 class InstagramUser():
     def __init__(self, json_data):
         if 'id' not in json_data:
-            raise RuntimeError("Missing ID on Instagram user json_data")
+            raise RuntimeError('Missing ID on Instagram user json_data')
         
         self.id: str = json_data['id']
         self.username: str = json_data['username'] if 'username' in json_data else ''
         self.account_type: str = json_data['account_type'] if 'account_type' in json_data else ''
         self.media_count: int = json_data['media_count'] if 'media_count' in json_data else -1
         return
+    
+    def to_json(self):
+        return json.dumps(self, default=lambda o: o.__dict__)
 
 class InstagramClient():
     _user_id: str
@@ -39,7 +45,8 @@ class InstagramClient():
     _expiration_date: float
     _config_file: str
     _API_VERSION = 'v19.0'
-    _ALL_MEDIA_FIELDS = 'id,media_type,permalink,media_url,thumbnail_url,caption,username,timestamp'
+    _ALL_CHILDREN_MEDIA_FIELDS = 'id,media_type,permalink,media_url,thumbnail_url,username,timestamp'
+    _ALL_MEDIA_FIELDS = f'{_ALL_CHILDREN_MEDIA_FIELDS},caption'
     _ALL_USER_FIELDS = 'id,account_type,username,media_count'
 
     def __init__(self, config_file):
@@ -49,7 +56,7 @@ class InstagramClient():
         f.close()
         if any(key not in config for key in required_keys):
             print(
-                f"Missing one or more required keys ({required_keys}) from configuration file: {config}")
+                f'Missing one or more required keys ({required_keys}) from configuration file: {config}')
 
         self._user_id = config['user_id']
         self._access_token = config['access_token']
@@ -66,14 +73,14 @@ class InstagramClient():
     def _refresh_token(self):
         # 4. Call to refresh long-lived access-token.
         long_lived_response = requests.get(
-            f"https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token={self._access_token}")
+            f'https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token={self._access_token}')
         long_lived_json = long_lived_response.json()
         required_keys = ['access_token', 'expires_in']
         if any(key not in long_lived_json for key in required_keys):
             print(
-                f"Missing one or more required keys ({required_keys}) from response of long lived request: {long_lived_json}")
+                f'Missing one or more required keys ({required_keys}) from response of long lived request: {long_lived_json}')
             exit(1)
-        print(f"Long Lived Token: {long_lived_json}")
+        print(f'Long Lived Token: {long_lived_json}')
         self._access_token = long_lived_json['access_token']
         time_change = timedelta(seconds=long_lived_json['expires_in'])
         self._expiration_date = datetime.timestamp(datetime.now() + time_change)
@@ -85,21 +92,33 @@ class InstagramClient():
                                     'user_id': self._user_id,
                                     'expiration_date': self._expiration_date}, ensure_ascii=False, indent=2)
             f.write(json_data)
-            print(f"JSON data saved to file: {json_data}")
+            print(f'JSON data saved to file: {json_data}')
 
     def get_user_details(self, fields = _ALL_USER_FIELDS):
-        #GET https://graph.instagram.com/{api-version}/{user-id}?access_token={access-token}&fields{fields}
-        return InstagramUser()
+        response = requests.get(
+            f'https://graph.instagram.com/{self._API_VERSION}/{self._user_id}?access_token={self._access_token}&fields={fields}')
+        response_json = response.json()
+        return InstagramUser(response_json)
 
     def get_user_medias(self, since = None, until = None, fields = _ALL_MEDIA_FIELDS, with_children_data = False):
-        #GET https://graph.instagram.com/{api-version}/{user-id}/media?access_token={access-token}&fields{fields}&since={since}&until={until}
-        return []
-
-    def get_media_children(self, media_id, fields = _ALL_MEDIA_FIELDS):
+        response = requests.get(
+            f'https://graph.instagram.com/{self._API_VERSION}/{self._user_id}/media?access_token={self._access_token}&fields={fields}&since={since if since else ""}&until={until if until else ""}')
+        response_json = response.json()
+        return [InstagramMedia(media_json) for media_json in response_json['data']]
+    
+    def get_media_children(self, media_id, fields = _ALL_CHILDREN_MEDIA_FIELDS):
         #GET https://graph.instagram.com/{api-version}/{media-id}/children?access_token={access-token}&fields{fields}
-        return []
+        response = requests.get(
+            f'https://graph.instagram.com/{self._API_VERSION}/{media_id}/children?access_token={self._access_token}&fields={fields}')
+        response_json = response.json()
+        return [InstagramMedia(media_json) for media_json in response_json['data']]
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     instagram_client = InstagramClient('access_token.json')
-    media = InstagramMedia({'id':'bla'})
+    user = instagram_client.get_user_details()
+    print(user.to_json())
+    medias = instagram_client.get_user_medias()
+    print([media.to_json() for media in medias])
+    media_children = instagram_client.get_media_children("18044564671395940")
+    print([media.to_json() for media in media_children])
+
