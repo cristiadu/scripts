@@ -56,8 +56,8 @@ class InstagramClient():
         config = json.load(f)
         f.close()
         if any(key not in config for key in required_keys):
-            print(
-                f'Missing one or more required keys ({required_keys}) from configuration file: {config}')
+            print(f'Missing one or more required keys ({required_keys}) from configuration file: {config}')
+            exit(1)
 
         self._user_id = config['user_id']
         self._access_token = config['access_token']
@@ -78,8 +78,7 @@ class InstagramClient():
         long_lived_json = long_lived_response.json()
         required_keys = ['access_token', 'expires_in']
         if any(key not in long_lived_json for key in required_keys):
-            print(
-                f'Missing one or more required keys ({required_keys}) from response of long lived request: {long_lived_json}')
+            print(f'Missing one or more required keys ({required_keys}) from response of long lived request: {long_lived_json}')
             exit(1)
         print(f'Long Lived Token: {long_lived_json}')
         self._access_token = long_lived_json['access_token']
@@ -101,22 +100,30 @@ class InstagramClient():
             f'https://graph.instagram.com/{self._API_VERSION}/{self._user_id}?access_token={self._access_token}&fields={fields}')
 
         if response.status_code != 200:
-            print(
-                f'Error while trying to make user details request {response.url}: {response.json()}')
+            print(f'Error while trying to make user details request {response.url}: {response.json()}')
+            exit(1)
 
         response_json = response.json()
         return InstagramUser(response_json)
 
-    def get_user_medias(self, since=None, until=None, fields=_ALL_MEDIA_FIELDS, with_children_data=False):
+    def get_user_medias(self, since: int = None, until: int = None, fields=_ALL_MEDIA_FIELDS, with_children_data=False, exclude_media_ids=[]):
         response = requests.get(
             f'https://graph.instagram.com/{self._API_VERSION}/{self._user_id}/media?access_token={self._access_token}&fields={fields}&since={since if since else ""}&until={until if until else ""}')
         response_json = response.json()
-        response_data = response_json['data']
+        response_data = []
+
+        if 'data' in response_json:
+            response_data = response_json['data']
 
         while 'paging' in response_json and 'next' in response_json['paging']:
             response = requests.get(response_json['paging']['next'])
             response_json = response.json()
             response_data.extend(response_json['data'])
+
+        # Remove filtered items.
+        for index, media in enumerate(response_data):
+            if media['id'] in exclude_media_ids:
+                del response_data[index]
 
         if with_children_data:
             for media in response_data:
@@ -125,8 +132,8 @@ class InstagramClient():
                     media['children'] = self.get_media_children(media['id'])
 
         if response.status_code != 200:
-            print(
-                f'Error while trying to make media request {response.url}: {response.json()}')
+            print(f'Error while trying to make media request {response.url}: {response.json()}')
+            exit(1)
 
         return [InstagramMedia(media_json) for media_json in response_data]
 
@@ -134,7 +141,10 @@ class InstagramClient():
         response = requests.get(
             f'https://graph.instagram.com/{self._API_VERSION}/{media_id}/children?access_token={self._access_token}&fields={fields}')
         response_json = response.json()
-        response_data = response_json['data']
+        response_data = []
+
+        if 'data' in response_json:
+            response_data = response_json['data']
 
         while 'paging' in response_json and 'next' in response_json['paging']:
             response = requests.get(response_json['paging']['next'])
@@ -142,8 +152,8 @@ class InstagramClient():
             response_data.extend(response_json['data'])
 
         if response.status_code != 200:
-            print(
-                f'Error while trying to make media children request {response.url}: {response.json()}')
+            print(f'Error while trying to make media children request [{response.url}]: {response.json()}')
+            exit(1)
 
         return [InstagramMedia(media_json) for media_json in response_data]
 
@@ -152,7 +162,9 @@ if __name__ == '__main__':
     instagram_client = InstagramClient('access_token.json')
     user = instagram_client.get_user_details()
     print(user.to_json())
-    medias = instagram_client.get_user_medias(with_children_data=True)
+    current_date = datetime.now()
+    hundred_days_ago = datetime.timestamp(current_date - timedelta(days=100))
+    medias = instagram_client.get_user_medias(since=int(hundred_days_ago), until=int(current_date.timestamp()), with_children_data=True, exclude_media_ids=['18044564671395940', '17874119083345880'])
     print(json.dumps(medias, default=lambda o: o.__dict__))
-    media_children = instagram_client.get_media_children("18044564671395940")
+    media_children = instagram_client.get_media_children('18044564671395940')
     print(json.dumps(media_children, default=lambda o: o.__dict__))
