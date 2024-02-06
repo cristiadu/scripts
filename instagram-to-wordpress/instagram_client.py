@@ -6,6 +6,7 @@ import json
 import requests
 from datetime import datetime, timedelta
 
+
 class InstagramMedia():
     def __init__(self, json_data):
         if 'id' not in json_data:
@@ -19,25 +20,28 @@ class InstagramMedia():
         self.caption: str = json_data['caption'] if 'caption' in json_data else ''
         self.username: str = json_data['username'] if 'username' in json_data else ''
         self.timestamp: str = json_data['timestamp'] if 'timestamp' in json_data else ''
-        self.children: array(InstagramMedia) = json_data['children'] if 'children' in json_data else []
+        self.children: array(
+            InstagramMedia) = json_data['children'] if 'children' in json_data else []
         return
-    
+
     def to_json(self):
         return json.dumps(self, default=lambda o: o.__dict__)
+
 
 class InstagramUser():
     def __init__(self, json_data):
         if 'id' not in json_data:
             raise RuntimeError('Missing ID on Instagram user json_data')
-        
+
         self.id: str = json_data['id']
         self.username: str = json_data['username'] if 'username' in json_data else ''
         self.account_type: str = json_data['account_type'] if 'account_type' in json_data else ''
         self.media_count: int = json_data['media_count'] if 'media_count' in json_data else -1
         return
-    
+
     def to_json(self):
         return json.dumps(self, default=lambda o: o.__dict__)
+
 
 class InstagramClient():
     _user_id: str
@@ -83,7 +87,8 @@ class InstagramClient():
         print(f'Long Lived Token: {long_lived_json}')
         self._access_token = long_lived_json['access_token']
         time_change = timedelta(seconds=long_lived_json['expires_in'])
-        self._expiration_date = datetime.timestamp(datetime.now() + time_change)
+        self._expiration_date = datetime.timestamp(
+            datetime.now() + time_change)
         self._refresh_config_file()
 
     def _refresh_config_file(self):
@@ -94,17 +99,18 @@ class InstagramClient():
             f.write(json_data)
             print(f'JSON data saved to file: {json_data}')
 
-    def get_user_details(self, fields = _ALL_USER_FIELDS):
+    def get_user_details(self, fields=_ALL_USER_FIELDS):
         response = requests.get(
             f'https://graph.instagram.com/{self._API_VERSION}/{self._user_id}?access_token={self._access_token}&fields={fields}')
 
         if response.status_code != 200:
-            print(f'Error while trying to make user details request {response.url}: {response.json()}')
+            print(
+                f'Error while trying to make user details request {response.url}: {response.json()}')
 
         response_json = response.json()
         return InstagramUser(response_json)
 
-    def get_user_medias(self, since = None, until = None, fields = _ALL_MEDIA_FIELDS, with_children_data = False):
+    def get_user_medias(self, since=None, until=None, fields=_ALL_MEDIA_FIELDS, with_children_data=False):
         response = requests.get(
             f'https://graph.instagram.com/{self._API_VERSION}/{self._user_id}/media?access_token={self._access_token}&fields={fields}&since={since if since else ""}&until={until if until else ""}')
         response_json = response.json()
@@ -120,11 +126,12 @@ class InstagramClient():
                 media['children'] = self.get_media_children(media['id'])
 
         if response.status_code != 200:
-            print(f'Error while trying to make media request {response.url}: {response.json()}')
+            print(
+                f'Error while trying to make media request {response.url}: {response.json()}')
 
         return [InstagramMedia(media_json) for media_json in response_data]
-    
-    def get_media_children(self, media_id, fields = _ALL_CHILDREN_MEDIA_FIELDS):
+
+    def get_media_children(self, media_id, fields=_ALL_CHILDREN_MEDIA_FIELDS):
         response = requests.get(
             f'https://graph.instagram.com/{self._API_VERSION}/{media_id}/children?access_token={self._access_token}&fields={fields}')
         response_json = response.json()
@@ -136,9 +143,11 @@ class InstagramClient():
             response_data.extend(response_json['data'])
 
         if response.status_code != 200:
-            print(f'Error while trying to make media children request {response.url}: {response.json()}')
+            print(
+                f'Error while trying to make media children request {response.url}: {response.json()}')
 
         return [InstagramMedia(media_json) for media_json in response_data]
+
 
 if __name__ == '__main__':
     instagram_client = InstagramClient('access_token.json')
