@@ -20,7 +20,7 @@ class InstagramMedia():
         self.caption: str = json_data['caption'] if 'caption' in json_data else ''
         self.username: str = json_data['username'] if 'username' in json_data else ''
         self.timestamp: str = json_data['timestamp'] if 'timestamp' in json_data else ''
-        self.children: array(InstagramMedia) = json_data['children'] if 'children' in json_data else []
+        self.children: array = json_data['children'] if 'children' in json_data else []
 
     def to_json(self):
         return json.dumps(self, default=lambda o: o.__dict__)
@@ -83,8 +83,7 @@ class InstagramClient():
         print(f'Long Lived Token: {long_lived_json}')
         self._access_token = long_lived_json['access_token']
         time_change = timedelta(seconds=long_lived_json['expires_in'])
-        self._expiration_date = datetime.timestamp(
-            datetime.now() + time_change)
+        self._expiration_date = datetime.timestamp(datetime.now() + time_change)
         self._refresh_config_file()
 
     def _refresh_config_file(self):
@@ -98,12 +97,12 @@ class InstagramClient():
     def get_user_details(self, fields=_ALL_USER_FIELDS):
         response = requests.get(
             f'https://graph.instagram.com/{self._API_VERSION}/{self._user_id}?access_token={self._access_token}&fields={fields}')
+        response_json = response.json()
 
         if response.status_code != 200:
-            print(f'Error while trying to make user details request {response.url}: {response.json()}')
+            print(f'Error while trying to make user details request {response.url}: {response_json}')
             exit(1)
 
-        response_json = response.json()
         return InstagramUser(response_json)
 
     def get_user_medias(self, since: int = None, until: int = None, fields=_ALL_MEDIA_FIELDS, with_children_data=False, exclude_media_ids=[]):
@@ -120,6 +119,10 @@ class InstagramClient():
             response_json = response.json()
             response_data.extend(response_json['data'])
 
+        if response.status_code != 200:
+            print(f'Error while trying to make media request {response.url}: {response_json}')
+            exit(1)
+
         # Remove filtered items.
         for index, media in enumerate(response_data):
             if media['id'] in exclude_media_ids:
@@ -130,10 +133,6 @@ class InstagramClient():
                 # children are only available for "CAROUSEL_ALBUM" media types.
                 if ('media_type', 'CAROUSEL_ALBUM') in media.items():
                     media['children'] = self.get_media_children(media['id'])
-
-        if response.status_code != 200:
-            print(f'Error while trying to make media request {response.url}: {response.json()}')
-            exit(1)
 
         return [InstagramMedia(media_json) for media_json in response_data]
 
@@ -152,10 +151,14 @@ class InstagramClient():
             response_data.extend(response_json['data'])
 
         if response.status_code != 200:
-            print(f'Error while trying to make media children request [{response.url}]: {response.json()}')
+            print(f'Error while trying to make media children request [{response.url}]: {response_json}')
             exit(1)
 
         return [InstagramMedia(media_json) for media_json in response_data]
+    
+    def download_media(self, media, destination_path):
+        # TODO: Download media using its direct link, from a InstagramMedia object
+        return
 
 
 if __name__ == '__main__':
