@@ -1,3 +1,4 @@
 *.pem
 instagram_config.json
 .env
+test/
