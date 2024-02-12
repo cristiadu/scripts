@@ -44,11 +44,11 @@ class WordpressClient():
         print(f'Wordpress Token: {token_json}')
         self._access_token = token_json['access_token']
 
-    def upload_post_media(self, file_path, caption, post_id = None):
+    def upload_post_media(self, file_path, caption, alt_text, description, post_id = None):
         # TODO: Verify sizing is correct for images within the posts, verify if post reference needs to be updated.
         media_response = requests.post(f'https://public-api.wordpress.com/wp/v2/sites/{self._site}/media',
                                        headers=self.auth_header,
-                                       data={'date': datetime.now(), 'alt_text': caption, 'caption': caption, 'description': caption,
+                                       data={'date': datetime.now(), 'alt_text': alt_text, 'caption': caption, 'description': description,
                                              'post': post_id if post_id else 0},
                                        files={'file': open(file_path, "rb"), 'caption': caption})
         media_json = media_response.json()
@@ -79,6 +79,6 @@ if __name__ == '__main__':
     client = WordpressClient(os.environ['WORDPRESS_CLIENT_ID'], os.environ['WORDPRESS_CLIENT_SECRET'],
                              os.environ['WORDPRESS_USERNAME'], os.environ['WORDPRESS_APPLICATION_PASSWORD'], os.environ['WORDPRESS_SITE'])
     
-    client.create_post('My Title', 'My Content', ['test-post'], ['test-tag'])
-    client.upload_post_media('test_img.jpg', 'My Caption')
+    client.create_post('My Title', 'My Content')
+    client.upload_post_media('test/test_img.jpg', 'My Caption', 'My Alt Text', 'My Description')
 
