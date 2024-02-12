@@ -157,7 +157,7 @@ class InstagramClient():
         return [InstagramMedia(media_json) for media_json in response_data]
     
     def download_media(self, media, destination_path):
-        # Download media using its direct link, from a InstagramMedia object
+        # TODO: Download media using its direct link, from a InstagramMedia object
         return
 
 
