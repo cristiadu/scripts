@@ -111,6 +111,15 @@ class WordpressClient():
             exit(1)
 
         return author_json[0]['id']
+    
+    def retrieve_or_create_category_id(self, category, self_call = False):
+        tag_id = self.get_tag_id(tag)
+        if tag_id is not None:
+            return tag_id
+        
+        # TODO: Create category and return its ID here.
+
+        return None
 
     def get_category_id(self, category, self_call = False):
         category_response = requests.get(f'https://public-api.wordpress.com/wp/v2/sites/{self._site}/categories?search={category}',
@@ -124,13 +133,18 @@ class WordpressClient():
         if category_response.status_code != 200:
             print(f'Error while trying to retrieve category [{category_response.url}]: {category_json}')
             exit(1)
-        
-        if len(category_json) == 0:
-            print(f'Could not find category matching string: {category}')
-            exit(1)
 
-        return category_json[0]['id']
+        return category_json[0]['id'] if len(category_json) != 0 else None
     
+    def retrieve_or_create_tag_id(self, tag, self_call = False):
+        tag_id = self.get_tag_id(tag)
+        if tag_id is not None:
+            return tag_id
+
+        # TODO: Create tag and return its ID here.
+
+        return None
+
     def get_tag_id(self, tag, self_call = False):
         tag_response = requests.get(f'https://public-api.wordpress.com/wp/v2/sites/{self._site}/tags?search={tag}',
                                     headers=self.auth_header)
@@ -143,12 +157,8 @@ class WordpressClient():
         if tag_response.status_code != 200:
             print(f'Error while trying to retrieve tag [{tag_response.url}]: {tag_json}')
             exit(1)
-        
-        if len(tag_json) == 0:
-            print(f'Could not find tag matching string: {tag}')
-            exit(1)
 
-        return tag_json[0]['id']
+        return tag_json[0]['id'] if len(tag_json) != 0 else None
 
 
 if __name__ == '__main__':
