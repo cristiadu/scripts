@@ -69,14 +69,15 @@ class WordpressClient():
         print(f'Media Data: {media_json}')
 
     def create_post(self, title, content, categories = [], tags=[], author = None, post_medias_path = [], self_call =  False):
-        # {'date':'{current_timezone_date}', 'status':'publish', 'format': 'standard', 'title':'{title}', 'content':'{content}', 'author':'{author}', 'comment_status':'open', 'categories':'{categories}', 'tags':'{tags}'}
-        # TODO: author, category and tags need the ID and not the name as part of the request, we need to retrieve them first.
         # TODO: Discover how to reference uploaded media on the post itself, how to add into content.
         # TODO: Check which kind of formatting language can be used on posts (html, markdown, etc)
         post_response = requests.post(f'https://public-api.wordpress.com/wp/v2/sites/{self._site}/posts',
                                       headers=self.auth_header,
                                       data={'date': datetime.now(), 'status': 'publish', 'format': 'standard',
-                                            'title': title, 'content': content, 'comment_status': 'open'})
+                                            'title': title, 'content': content, 'comment_status': 'open',
+                                            'author': self.get_author_id(author) if author else None,
+                                            'categories': ','.join([str(self.get_category_id(category)) for category in categories]),
+                                            'tags': ','.join([str(self.get_tag_id(tag)) for tag in tags])})
         
         if post_response.status_code == 401 and not self_call:
             self._refresh_token()
@@ -92,17 +93,62 @@ class WordpressClient():
         for media_path in post_medias_path:
             self.upload_post_media(media_path, f'Post {title} media {media_path}', f'Post {title} media {media_path}', f'Media uploaded for post titled: {title}')
 
-    def get_author_id(self, author):
-        # TODO: Given an author (email or username), get the user ID associated to it.
-        return
+    def get_author_id(self, author, self_call = False):
+        author_response = requests.get(f'https://public-api.wordpress.com/wp/v2/sites/{self._site}/users?search={author}',
+                                    headers=self.auth_header)
+        
+        if author_response.status_code == 401 and not self_call:
+            self._refresh_token()
+            self.get_author_id(author, True)
+        author_json = author_response.json()
 
-    def get_category_id(self, category):
-        # TODO: Given a category name (string), get the category ID associated to it.
-        return
+        if author_response.status_code != 200:
+            print(f'Error while trying to retrieve author [{author_response.url}]: {author_json}')
+            exit(1)
+        
+        if len(author_json) == 0:
+            print(f'Could not find author matching string: {author_json}')
+            exit(1)
+
+        return author_json[0]['id']
+
+    def get_category_id(self, category, self_call = False):
+        category_response = requests.get(f'https://public-api.wordpress.com/wp/v2/sites/{self._site}/categories?search={category}',
+                                    headers=self.auth_header)
+        
+        if category_response.status_code == 401 and not self_call:
+            self._refresh_token()
+            self.get_category_id(category, True)
+        category_json = category_response.json()
+
+        if category_response.status_code != 200:
+            print(f'Error while trying to retrieve category [{category_response.url}]: {category_json}')
+            exit(1)
+        
+        if len(category_json) == 0:
+            print(f'Could not find category matching string: {category}')
+            exit(1)
+
+        return category_json[0]['id']
     
-    def get_tag_id(self, tag):
-        # TODO: Given a tag name (string), get the tag ID associated to it.
-        return
+    def get_tag_id(self, tag, self_call = False):
+        tag_response = requests.get(f'https://public-api.wordpress.com/wp/v2/sites/{self._site}/tags?search={tag}',
+                                    headers=self.auth_header)
+        
+        if tag_response.status_code == 401 and not self_call:
+            self._refresh_token()
+            self.get_tag_id(tag, True)
+        tag_json = tag_response.json()
+
+        if tag_response.status_code != 200:
+            print(f'Error while trying to retrieve tag [{tag_response.url}]: {tag_json}')
+            exit(1)
+        
+        if len(tag_json) == 0:
+            print(f'Could not find tag matching string: {tag}')
+            exit(1)
+
+        return tag_json[0]['id']
 
 
 if __name__ == '__main__':
@@ -117,4 +163,4 @@ if __name__ == '__main__':
     client = WordpressClient(os.environ['WORDPRESS_CLIENT_ID'], os.environ['WORDPRESS_CLIENT_SECRET'],
                              os.environ['WORDPRESS_USERNAME'], os.environ['WORDPRESS_APPLICATION_PASSWORD'], os.environ['WORDPRESS_SITE'])
     
-    client.create_post('My Title', 'My Content', post_medias_path=['test/test_img.jpg'])
+    client.create_post('My Title', 'My Content', author='cristiadu', categories=['my_category', 'my_category_2', 'API'], tags=['my_tag', 'my_tag_2'], post_medias_path=['test/test_img.jpg'])
