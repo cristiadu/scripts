@@ -76,6 +76,11 @@ class InstagramClient():
         long_lived_response = requests.get(
             f'https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token={self._access_token}')
         long_lived_json = long_lived_response.json()
+
+        if long_lived_response.status_code != 200:
+            print(f'Error while trying to refresh authentication token [{long_lived_response.url}]: {long_lived_json}')
+            exit(1)
+
         required_keys = ['access_token', 'expires_in']
         if any(key not in long_lived_json for key in required_keys):
             print(f'Missing one or more required keys ({required_keys}) from response of long lived request: {long_lived_json}')
