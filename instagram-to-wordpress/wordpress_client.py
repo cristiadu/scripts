@@ -76,8 +76,8 @@ class WordpressClient():
                                       data={'date': datetime.now(), 'status': 'publish', 'format': 'standard',
                                             'title': title, 'content': content, 'comment_status': 'open',
                                             'author': self.get_author_id(author) if author else None,
-                                            'categories': ','.join([str(self.get_category_id(category)) for category in categories]),
-                                            'tags': ','.join([str(self.get_tag_id(tag)) for tag in tags])})
+                                            'categories': ','.join([str(self.retrieve_or_create_category_id(category)) for category in categories]),
+                                            'tags': ','.join([str(self.retrieve_or_create_tag_id(tag)) for tag in tags])})
         
         if post_response.status_code == 401 and not self_call:
             self._refresh_token()
@@ -113,13 +113,26 @@ class WordpressClient():
         return author_json[0]['id']
     
     def retrieve_or_create_category_id(self, category, self_call = False):
-        tag_id = self.get_tag_id(tag)
-        if tag_id is not None:
-            return tag_id
+        category_id = self.get_category_id(category)
+        if category_id is not None:
+            return category_id
         
-        # TODO: Create category and return its ID here.
+        # New category, so create it.
+        category_response = requests.post(f'https://public-api.wordpress.com/wp/v2/sites/{self._site}/categories',
+                                    headers=self.auth_header,
+                                    data={'name': category})
+        
+        if category_response.status_code == 401 and not self_call:
+            self._refresh_token()
+            self.get_category_id(category, True)
+        category_json = category_response.json()
 
-        return None
+        if category_response.status_code not in [200, 201]:
+            print(f'Error while trying to create category [{category_response.url}]: {category_json}')
+            exit(1)
+
+        print(f'Category Data: {category_json}')
+        return category_json['id']
 
     def get_category_id(self, category, self_call = False):
         category_response = requests.get(f'https://public-api.wordpress.com/wp/v2/sites/{self._site}/categories?search={category}',
@@ -127,7 +140,7 @@ class WordpressClient():
         
         if category_response.status_code == 401 and not self_call:
             self._refresh_token()
-            self.get_category_id(category, True)
+            self.retrieve_or_create_category_id(category, True)
         category_json = category_response.json()
 
         if category_response.status_code != 200:
@@ -141,9 +154,22 @@ class WordpressClient():
         if tag_id is not None:
             return tag_id
 
-        # TODO: Create tag and return its ID here.
+        # New tag, so create it.
+        tag_response = requests.post(f'https://public-api.wordpress.com/wp/v2/sites/{self._site}/tags',
+                                    headers=self.auth_header,
+                                    data={'name': tag})
+        
+        if tag_response.status_code == 401 and not self_call:
+            self._refresh_token()
+            self.retrieve_or_create_tag_id(tag, True)
+        tag_json = tag_response.json()
 
-        return None
+        if tag_response.status_code not in [200, 201]:
+            print(f'Error while trying to create tag [{tag_response.url}]: {tag_json}')
+            exit(1)
+
+        print(f'Tag Data: {tag_json}')
+        return tag_json['id']
 
     def get_tag_id(self, tag, self_call = False):
         tag_response = requests.get(f'https://public-api.wordpress.com/wp/v2/sites/{self._site}/tags?search={tag}',
@@ -173,4 +199,4 @@ if __name__ == '__main__':
     client = WordpressClient(os.environ['WORDPRESS_CLIENT_ID'], os.environ['WORDPRESS_CLIENT_SECRET'],
                              os.environ['WORDPRESS_USERNAME'], os.environ['WORDPRESS_APPLICATION_PASSWORD'], os.environ['WORDPRESS_SITE'])
     
-    client.create_post('My Title', 'My Content', author='cristiadu', categories=['my_category', 'my_category_2', 'API'], tags=['my_tag', 'my_tag_2'], post_medias_path=['test/test_img.jpg'])
+    client.create_post('My Title', 'My Content', author='cristiadu', categories=['my_category', 'my_category_2', 'API', 'Mamma Mia', 'Pizzaria'], tags=['my_tag', 'my_tag_2', 'mama_tag'], post_medias_path=['test/test_img.jpg'])
