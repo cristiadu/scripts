@@ -62,7 +62,7 @@ class WordpressClient():
             self.upload_post_media(file_path, caption, alt_text, description, post_id, True)
         media_json = media_response.json()
 
-        if media_response.status_code != 200:
+        if media_response.status_code not in [200, 201]:
             print(f'Error while trying to upload media [{media_response.url}]: {media_json}')
             exit(1)
 
@@ -83,7 +83,7 @@ class WordpressClient():
             self.create_post(title, content, categories, tags, author, post_medias_path, True)
         post_json = post_response.json()
 
-        if post_response.status_code != 200:
+        if post_response.status_code not in [200, 201]:
             print(f'Error while trying to create post [{post_response.url}]: {post_json}')
             exit(1)
 
