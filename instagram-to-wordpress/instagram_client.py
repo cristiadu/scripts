@@ -130,7 +130,7 @@ class InstagramClient():
 
         # Remove filtered items.
         for index, media in enumerate(response_data):
-            if media['id'] in exclude_media_ids:
+            if media['id'] in exclude_media_ids or media['media_type'] == 'VIDEO':
                 del response_data[index]
 
         if with_children_data:
@@ -150,6 +150,11 @@ class InstagramClient():
         if 'data' in response_json:
             response_data = response_json['data']
 
+        for index, media in enumerate(response_data):
+            if media['media_type'] == 'VIDEO':
+                print(f'Video media type is not supported for children media: {media}')
+                del response_data[index]
+
         while 'paging' in response_json and 'next' in response_json['paging']:
             response = requests.get(response_json['paging']['next'])
             response_json = response.json()
@@ -162,9 +167,16 @@ class InstagramClient():
         return [InstagramMedia(media_json) for media_json in response_data]
     
     def download_media(self, media, destination_path):
-        # TODO: Download media using its direct link, from a InstagramMedia object
-        return
+        file_path = None
+        response = requests.get(media, stream=True)
+        if response.status_code == 200:
+            with open(f'{destination_path}', 'wb') as file:
+                for chunk in response.iter_content(1024):
+                    file.write(chunk)
+                file_path = file.name
+            print(f'Image downloaded to {destination_path}')
 
+        return file_path
 
 if __name__ == '__main__':
     instagram_client = InstagramClient('instagram_config.json')
@@ -176,3 +188,4 @@ if __name__ == '__main__':
     print(json.dumps(medias, default=lambda o: o.__dict__))
     media_children = instagram_client.get_media_children('18044564671395940')
     print(json.dumps(media_children, default=lambda o: o.__dict__))
+    instagram_client.download_media(medias[0], 'test.jpg')
