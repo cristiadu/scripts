@@ -26,15 +26,15 @@ instagram_posts = instagram_client.get_user_medias(with_children_data=True)
 # For each Instagram post, create a corresponding post on WordPress
 for media in instagram_posts:
     timestamp = datetime.strptime(media.timestamp, '%Y-%m-%dT%H:%M:%S+0000')
-    title = timestamp.strftime('%d/%m/%Y %H:%M')
-    content = media.caption  # Replace this with your own logic for generating the content
-    hashtags = re.findall(r"#(\w+)", media.caption)
+    title = timestamp.strftime('%d/%m/%Y %H:%M') # title for now is the formatted timestamp.
+    content = media.caption
+    hashtags = re.findall(r"#(\w+)", media.caption) # alll hashtags are treated as categories and tags.
     media_paths = [instagram_client.download_media(media.media_url, f'./test/{media.media_url.split("/")[-1].split("?")[0]}')]
 
     if len(media.children) > 0:
         media_paths = [instagram_client.download_media(child_media.media_url, f'./test/{child_media.media_url.split("/")[-1].split("?")[0]}') for child_media in media.children]
-    print(media_paths)
-    # Use hashtags as both tags and categories
+    
+    # Use hashtags as both tags and categories, date as the post date.
     wordpress_client.create_post(title, content, categories=hashtags, tags=hashtags,date=timestamp, post_medias_path=media_paths)
     for media_path in media_paths:
         os.remove(media_path)
