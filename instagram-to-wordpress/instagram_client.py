@@ -41,6 +41,7 @@ class InstagramUser():
 
 
 class InstagramClient():
+    last_post_fetch_date: float
     _user_id: str
     _access_token: str
     _expiration_date: float
@@ -51,7 +52,7 @@ class InstagramClient():
     _ALL_USER_FIELDS = 'id,account_type,username,media_count'
 
     def __init__(self, config_file):
-        required_keys = ['user_id', 'access_token', 'expiration_date']
+        required_keys = ['user_id', 'access_token', 'expiration_date', 'last_post_fetch_date']
         f = open(config_file)
         config = json.load(f)
         f.close()
@@ -62,6 +63,7 @@ class InstagramClient():
         self._user_id = config['user_id']
         self._access_token = config['access_token']
         self._expiration_date = config['expiration_date']
+        self.last_post_fetch_date = config['last_post_fetch_date'] if 'last_post_fetch_date' in config else 0
         self._config_file = config_file
         self._refresh_token_if_needed()
 
@@ -95,9 +97,14 @@ class InstagramClient():
         with io.open(self._config_file, 'w', encoding='utf-8') as f:
             json_data = json.dumps({'access_token': self._access_token,
                                     'user_id': self._user_id,
-                                    'expiration_date': self._expiration_date}, ensure_ascii=False, indent=2)
+                                    'expiration_date': self._expiration_date,
+                                    'last_post_fetch_date': self.last_post_fetch_date}, ensure_ascii=False, indent=2)
             f.write(json_data)
             print(f'JSON data saved to file: {json_data}')
+
+    def set_fetch_date(self, fetch_date):
+        self.last_post_fetch_date = fetch_date
+        self._refresh_config_file()
 
     def get_user_details(self, fields=_ALL_USER_FIELDS):
         response = requests.get(
@@ -111,6 +118,7 @@ class InstagramClient():
         return InstagramUser(response_json)
 
     def get_user_medias(self, since: int = None, until: int = None, fields=_ALL_MEDIA_FIELDS, with_children_data=False, exclude_media_ids=[]):
+        print(f'Fetching media from profile since: {datetime.fromtimestamp(since)}')
         response = requests.get(
             f'https://graph.instagram.com/{self._API_VERSION}/{self._user_id}/media?access_token={self._access_token}&fields={fields}&since={since if since else ""}&until={until if until else ""}')
         response_json = response.json()

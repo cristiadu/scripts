@@ -190,4 +190,3 @@ class WordpressClient():
             exit(1)
 
         return tag_json[0]['id'] if len(tag_json) != 0 else None
-

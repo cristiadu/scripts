@@ -21,7 +21,7 @@ wordpress_client = WordpressClient(os.environ['WORDPRESS_CLIENT_ID'], os.environ
                                    os.environ['WORDPRESS_USERNAME'], os.environ['WORDPRESS_APPLICATION_PASSWORD'], os.environ['WORDPRESS_SITE'])
 
 # Fetch posts from Instagram
-instagram_posts = instagram_client.get_user_medias(with_children_data=True)
+instagram_posts = instagram_client.get_user_medias(with_children_data=True, since=int(instagram_client.last_post_fetch_date))
 
 # For each Instagram post, create a corresponding post on WordPress
 for media in instagram_posts:
@@ -38,3 +38,6 @@ for media in instagram_posts:
     wordpress_client.create_post(title, content, categories=hashtags, tags=hashtags,date=timestamp, post_medias_path=media_paths)
     for media_path in media_paths:
         os.remove(media_path)
+
+# Updating the date the last post was fetched from Instagram
+instagram_client.set_fetch_date(int(datetime.now().timestamp()))
