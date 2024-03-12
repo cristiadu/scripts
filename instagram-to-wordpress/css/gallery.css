@@ -1,0 +1,18 @@
+/* Increase the size of the thumbnails */
+.gallery .gallery-icon img {
+    width: 200px;  /* Adjust as needed */
+    height: 200px;  /* Adjust as needed */
+}
+
+/* Add a border, some padding, and a box shadow to each thumbnail for a card-like effect */
+.gallery-item {
+    border: 1px solid #ccc;
+    padding: 10px;
+    box-shadow: 2px 2px 6px 0px rgba(0,0,0,0.3);
+    margin: 10px;
+}
+
+/* Add some margin to the gallery container to prevent thumbnails from touching the edge of the container */
+.gallery {
+    margin: 10px;
+}

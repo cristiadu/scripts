@@ -122,7 +122,9 @@ class InstagramClient():
         while 'paging' in response_json and 'next' in response_json['paging']:
             response = requests.get(response_json['paging']['next'])
             response_json = response.json()
-            response_data.extend(response_json['data'])
+
+            if 'data' in response_json:
+                response_data.extend(response_json['data'])
 
         if response.status_code != 200:
             print(f'Error while trying to make media request {response.url}: {response_json}')

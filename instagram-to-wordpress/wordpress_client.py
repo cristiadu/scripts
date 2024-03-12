@@ -72,15 +72,13 @@ class WordpressClient():
     def create_post(self, title, content, categories = [], tags=[], date = datetime.now(), author = None, post_medias_path = [], self_call =  False):
         media_ids = []
         for media_path in post_medias_path:
-            media_data = self.upload_post_media(media_path, f'{date} - {title}', f'{date} - {title}', f'Media uploaded for post titled: {title}')
+            media_data = self.upload_post_media(media_path, f'{title}', f'{title}', f'Media uploaded for post titled: {title}')
             media_id = media_data['id']  # get the media ID from the response
             media_ids.append(media_id)
 
         # Create a gallery with the uploaded media IDs
         gallery_shortcode = f'[gallery ids="{",".join(map(str, media_ids))}"]'
-        content += f'{gallery_shortcode}'  # add the gallery to the post content
-
-        # TODO: Check which kind of formatting language can be used on posts (html, markdown, etc)
+        content = f'{gallery_shortcode}{content}'  # add the gallery to the post content
         post_response = requests.post(f'https://public-api.wordpress.com/wp/v2/sites/{self._site}/posts',
                                       headers=self.auth_header,
                                       data={'date': date, 'status': 'publish', 'format': 'standard',
@@ -193,17 +191,3 @@ class WordpressClient():
 
         return tag_json[0]['id'] if len(tag_json) != 0 else None
 
-
-if __name__ == '__main__':
-    load_dotenv()
-    required_env_keys = ['WORDPRESS_CLIENT_ID', 'WORDPRESS_CLIENT_SECRET',
-                         'WORDPRESS_USERNAME', 'WORDPRESS_APPLICATION_PASSWORD', 'WORDPRESS_SITE']
-    if any(env_key not in os.environ for env_key in required_env_keys):
-        print(
-            f'Missing one of the environment variables required for wordpress authentication {required_env_keys}')
-        exit(1)
-
-    client = WordpressClient(os.environ['WORDPRESS_CLIENT_ID'], os.environ['WORDPRESS_CLIENT_SECRET'],
-                             os.environ['WORDPRESS_USERNAME'], os.environ['WORDPRESS_APPLICATION_PASSWORD'], os.environ['WORDPRESS_SITE'])
-    
-    client.create_post('My Title', 'My Content', author='cristiadu', categories=['my_category', 'my_category_2', 'API', 'Mamma Mia', 'Pizzaria'], tags=['my_tag', 'my_tag_2', 'mama_tag'], post_medias_path=['test/test_img.jpg','test/test_img.jpg', 'test/test_img.jpg'])

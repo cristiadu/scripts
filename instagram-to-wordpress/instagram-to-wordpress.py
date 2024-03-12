@@ -5,6 +5,7 @@ from instagram_client import InstagramClient
 from wordpress_client import WordpressClient
 import os
 from dotenv import load_dotenv
+from datetime import datetime
 
 # Load environment variables
 load_dotenv()
@@ -24,7 +25,8 @@ instagram_posts = instagram_client.get_user_medias(with_children_data=True)
 
 # For each Instagram post, create a corresponding post on WordPress
 for media in instagram_posts:
-    title = media.timestamp.format('DD/MM/YYYY HH:mm') 
+    timestamp = datetime.strptime(media.timestamp, '%Y-%m-%dT%H:%M:%S+0000')
+    title = timestamp.strftime('%d/%m/%Y %H:%M')
     content = media.caption  # Replace this with your own logic for generating the content
     hashtags = re.findall(r"#(\w+)", media.caption)
     media_paths = [instagram_client.download_media(media.media_url, f'./test/{media.media_url.split("/")[-1].split("?")[0]}')]
@@ -33,6 +35,6 @@ for media in instagram_posts:
         media_paths = [instagram_client.download_media(child_media.media_url, f'./test/{child_media.media_url.split("/")[-1].split("?")[0]}') for child_media in media.children]
     print(media_paths)
     # Use hashtags as both tags and categories
-    wordpress_client.create_post(title, content, categories=hashtags, tags=hashtags, post_medias_path=media_paths)
+    wordpress_client.create_post(title, content, categories=hashtags, tags=hashtags,date=timestamp, post_medias_path=media_paths)
     for media_path in media_paths:
         os.remove(media_path)
