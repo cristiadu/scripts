@@ -187,15 +187,3 @@ class InstagramClient():
             print(f'Image downloaded to {destination_path}')
 
         return file_path
-
-if __name__ == '__main__':
-    instagram_client = InstagramClient('instagram_config.json')
-    user = instagram_client.get_user_details()
-    print(user.to_json())
-    current_date = datetime.now()
-    hundred_days_ago = datetime.timestamp(current_date - timedelta(days=100))
-    medias = instagram_client.get_user_medias(since=int(hundred_days_ago), until=int(current_date.timestamp()), with_children_data=True, exclude_media_ids=['18044564671395940', '17874119083345880'])
-    print(json.dumps(medias, default=lambda o: o.__dict__))
-    media_children = instagram_client.get_media_children('18044564671395940')
-    print(json.dumps(media_children, default=lambda o: o.__dict__))
-    instagram_client.download_media(medias[0], 'test.jpg')
