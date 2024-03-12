@@ -5,7 +5,7 @@ Some scripts made to help me automate &amp; streamline some things.
 
 Set of scripts made to replicate a feed from an Instagram account into a Wordpress blog.
 
-[Link](../instagram-to-wordpress)
+[Link](./instagram-to-wordpress)
 
 Done more specifically for the [Abundance Collective BIPOC community](https://abundancecollective.ca)
 
