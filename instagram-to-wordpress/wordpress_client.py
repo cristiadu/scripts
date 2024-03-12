@@ -12,6 +12,7 @@ class WordpressClient():
     _application_password: str
     _site: str
     _access_token: str
+    _BASE_API_PATH = 'https://public-api.wordpress.com/wp/v2/sites'
 
     def __init__(self, client_id, client_secret, username, application_password, site):
         self._client_id = client_id
@@ -48,7 +49,7 @@ class WordpressClient():
         self._access_token = token_json['access_token']
 
     def upload_post_media(self, file_path, caption, alt_text, description, post_id = None, self_call = False):
-        media_response = requests.post(f'https://public-api.wordpress.com/wp/v2/sites/{self._site}/media',
+        media_response = requests.post(f'{self._BASE_API_PATH}/{self._site}/media',
                                        headers=self.auth_header,
                                        data={'date': datetime.now(), 'alt_text': alt_text, 'caption': caption, 'description': description,
                                              'post': post_id if post_id else 0},
@@ -76,7 +77,7 @@ class WordpressClient():
         # Create a gallery with the uploaded media IDs
         gallery_shortcode = f'[gallery ids="{",".join(map(str, media_ids))}"]'
         content = f'{gallery_shortcode}{content}'  # add the gallery to the post content
-        post_response = requests.post(f'https://public-api.wordpress.com/wp/v2/sites/{self._site}/posts',
+        post_response = requests.post(f'{self._BASE_API_PATH}/{self._site}/posts',
                                       headers=self.auth_header,
                                       data={'date': date, 'status': 'publish', 'format': 'standard',
                                             'title': title, 'content': content, 'comment_status': 'open',
@@ -96,7 +97,7 @@ class WordpressClient():
         print(f'Post Data: {post_json}')
 
     def get_author_id(self, author, self_call = False):
-        author_response = requests.get(f'https://public-api.wordpress.com/wp/v2/sites/{self._site}/users?search={author}',
+        author_response = requests.get(f'{self._BASE_API_PATH}/{self._site}/users?search={author}',
                                     headers=self.auth_header)
         
         if author_response.status_code == 401 and not self_call:
@@ -120,7 +121,7 @@ class WordpressClient():
             return category_id
         
         # New category, so create it.
-        category_response = requests.post(f'https://public-api.wordpress.com/wp/v2/sites/{self._site}/categories',
+        category_response = requests.post(f'{self._BASE_API_PATH}/{self._site}/categories',
                                     headers=self.auth_header,
                                     data={'name': category})
         
@@ -137,7 +138,7 @@ class WordpressClient():
         return category_json['id']
 
     def get_category_id(self, category, self_call = False):
-        category_response = requests.get(f'https://public-api.wordpress.com/wp/v2/sites/{self._site}/categories?search={category}',
+        category_response = requests.get(f'{self._BASE_API_PATH}/{self._site}/categories?search={category}',
                                     headers=self.auth_header)
         
         if category_response.status_code == 401 and not self_call:
@@ -157,7 +158,7 @@ class WordpressClient():
             return tag_id
 
         # New tag, so create it.
-        tag_response = requests.post(f'https://public-api.wordpress.com/wp/v2/sites/{self._site}/tags',
+        tag_response = requests.post(f'{self._BASE_API_PATH}/{self._site}/tags',
                                     headers=self.auth_header,
                                     data={'name': tag})
         
@@ -174,7 +175,7 @@ class WordpressClient():
         return tag_json['id']
 
     def get_tag_id(self, tag, self_call = False):
-        tag_response = requests.get(f'https://public-api.wordpress.com/wp/v2/sites/{self._site}/tags?search={tag}',
+        tag_response = requests.get(f'{self._BASE_API_PATH}/{self._site}/tags?search={tag}',
                                     headers=self.auth_header)
         
         if tag_response.status_code == 401 and not self_call:

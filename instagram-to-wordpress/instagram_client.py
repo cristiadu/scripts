@@ -50,6 +50,7 @@ class InstagramClient():
     _ALL_CHILDREN_MEDIA_FIELDS = 'id,media_type,permalink,media_url,thumbnail_url,username,timestamp'
     _ALL_MEDIA_FIELDS = f'{_ALL_CHILDREN_MEDIA_FIELDS},caption'
     _ALL_USER_FIELDS = 'id,account_type,username,media_count'
+    _BASE_API_PATH = 'https://graph.instagram.com'
 
     def __init__(self, config_file):
         required_keys = ['user_id', 'access_token', 'expiration_date', 'last_post_fetch_date']
@@ -76,7 +77,7 @@ class InstagramClient():
     def _refresh_token(self):
         # 4. Call to refresh long-lived access-token.
         long_lived_response = requests.get(
-            f'https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token={self._access_token}')
+            f'{self._BASE_API_PATH}/refresh_access_token?grant_type=ig_refresh_token&access_token={self._access_token}')
         long_lived_json = long_lived_response.json()
 
         if long_lived_response.status_code != 200:
@@ -108,7 +109,7 @@ class InstagramClient():
 
     def get_user_details(self, fields=_ALL_USER_FIELDS):
         response = requests.get(
-            f'https://graph.instagram.com/{self._API_VERSION}/{self._user_id}?access_token={self._access_token}&fields={fields}')
+            f'{self._BASE_API_PATH}/{self._API_VERSION}/{self._user_id}?access_token={self._access_token}&fields={fields}')
         response_json = response.json()
 
         if response.status_code != 200:
@@ -120,7 +121,7 @@ class InstagramClient():
     def get_user_medias(self, since: int = None, until: int = None, fields=_ALL_MEDIA_FIELDS, with_children_data=False, exclude_media_ids=[]):
         print(f'Fetching media from profile since: {datetime.fromtimestamp(since)}')
         response = requests.get(
-            f'https://graph.instagram.com/{self._API_VERSION}/{self._user_id}/media?access_token={self._access_token}&fields={fields}&since={since if since else ""}&until={until if until else ""}')
+            f'{self._BASE_API_PATH}/{self._API_VERSION}/{self._user_id}/media?access_token={self._access_token}&fields={fields}&since={since if since else ""}&until={until if until else ""}')
         response_json = response.json()
         response_data = []
 
@@ -153,7 +154,7 @@ class InstagramClient():
 
     def get_media_children(self, media_id, fields=_ALL_CHILDREN_MEDIA_FIELDS):
         response = requests.get(
-            f'https://graph.instagram.com/{self._API_VERSION}/{media_id}/children?access_token={self._access_token}&fields={fields}')
+            f'{self._BASE_API_PATH}/{self._API_VERSION}/{media_id}/children?access_token={self._access_token}&fields={fields}')
         response_json = response.json()
         response_data = []
 
