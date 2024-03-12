@@ -2,8 +2,6 @@
 
 
 from datetime import datetime
-import os
-from dotenv import load_dotenv
 import requests
 
 
@@ -50,7 +48,6 @@ class WordpressClient():
         self._access_token = token_json['access_token']
 
     def upload_post_media(self, file_path, caption, alt_text, description, post_id = None, self_call = False):
-        # TODO: Verify sizing is correct for images within the posts, verify if post reference needs to be updated.
         media_response = requests.post(f'https://public-api.wordpress.com/wp/v2/sites/{self._site}/media',
                                        headers=self.auth_header,
                                        data={'date': datetime.now(), 'alt_text': alt_text, 'caption': caption, 'description': description,
