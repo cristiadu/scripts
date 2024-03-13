@@ -41,7 +41,9 @@ WORDPRESS_SITE="<SITE>.wordpress.com"
 replacing the placeholders with your credentials.
 
 3. Run `oauth_server_instagram.py` so instagram long lived authentication token can be retrieved.
+
 ** PS:** this setup is only needed once as a setup process.
+
 ```bash
 chmod +x ./oauth_server_instagram.py
 ./oauth_server_instagram.py
