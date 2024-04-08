@@ -70,7 +70,7 @@ class InstagramClient():
 
     def _refresh_token_if_needed(self):
         now_timestamp = datetime.timestamp(datetime.now())
-        if self._expiration_date <= now_timestamp:
+        if self._expiration_date - now_timestamp <= 15 * 24 * 60 * 60:  # 15 days in seconds
             print('Access token will be renewed.')
             self._refresh_token()
 
