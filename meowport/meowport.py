@@ -45,8 +45,6 @@ def fetch_meow_emojis():
     # Find all emoji <li> blocks (single quotes, robust)
     emoji_blocks = re.findall(r"<li class='emoji[^']*'[^>]*>.*?</li>", html_content, re.DOTALL)
     print(f"DEBUG: Found {len(emoji_blocks)} <li class='emoji'> blocks.")
-    # Print first 2 blocks for debugging
-    for i, block in enumerate(emoji_blocks[:2]):
     emojis = []
     for block in emoji_blocks:
         # Find emoji name (any name containing 'meow', case-insensitive, allow whitespace/newlines)
