@@ -59,6 +59,7 @@ class OAuthServer:
                 self._my_server = socketserver.TCPServer(
                     ("0.0.0.0", self.PORT), SimpleHttpServer)
                 ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+                ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2
                 ssl_context.load_cert_chain(
                     "./cert.pem", "./key.pem", password=os.environ['SSL_PASSWORD'])
                 self._my_server.socket = ssl_context.wrap_socket(
