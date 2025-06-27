@@ -7,10 +7,10 @@ Set of scripts made to replicate a feed from an Instagram account into a Wordpre
 
 [Link](./instagram-to-wordpress)
 
-Done more specifically for the [Abundance Collective BIPOC community](https://abundancecollective.ca)
+Done more specifically for the [Abundance Collective BIPOC community](https://abundancecollective.wordpress.com)
 
-## My Linkedin Jobs
+## Meowport
 
-Script made to streamline the Linkedin Job search by removing possible duplicates and jobs you already applied.
+Script to Download all the `:meow-` based emojis from this page: https://slackmojis.com/categories/25-blob-cats-emojis and import them into a Discord server using the Discord API.
 
-[Link](./my-li-jobs)
+[Link](./meowport)
